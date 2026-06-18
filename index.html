@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Pro</title>
+
+<style>
+body{
+    font-family:Arial, sans-serif;
+    max-width:900px;
+    margin:30px auto;
+    padding:20px;
+    background:#f4f4f4;
+}
+
+h1{
+    text-align:center;
+}
+
+.cards{
+    display:flex;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    flex:1;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+
+input, select{
+    padding:10px;
+    width:100%;
+    margin-bottom:10px;
+}
+
+button{
+    padding:10px;
+    cursor:pointer;
+}
+
+.add{
+    background:#16a34a;
+    color:white;
+    border:none;
+}
+
+.delete{
+    background:#dc2626;
+    color:white;
+    border:none;
+    padding:5px 10px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:left;
+}
+</style>
+</head>
+<body>
+
+<h1>Finance Pro</h1>
+
+<div class="cards">
+
+<div class="card">
+<h3>Saldo</h3>
+<h2 id="saldo">R$ 0,00</h2>
+</div>
+
+<div class="card">
+<h3>Receitas</h3>
+<h2 id="receitas">R$ 0,00</h2>
+</div>
+
+<div class="card">
+<h3>Despesas</h3>
+<h2 id="despesas">R$ 0,00</h2>
+</div>
+
+</div>
+
+<h2>Nova Transação</h2>
+
+<input id="descricao" placeholder="Descrição">
+
+<select id="tipo">
+<option value="receita">Receita</option>
+<option value="despesa">Despesa</option>
+</select>
+
+<input id="valor" type="number" placeholder="Valor">
+
+<button class="add" onclick="adicionar()">
+Adicionar
+</button>
+
+<h2>Transações</h2>
+
+<table>
+<thead>
+<tr>
+<th>Descrição</th>
+<th>Tipo</th>
+<th>Valor</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="lista"></tbody>
+</table>
+
+<script>
+
+let dados =
+JSON.parse(localStorage.getItem("financePro")) || [];
+
+function salvar(){
+    localStorage.setItem(
+        "financePro",
+        JSON.stringify(dados)
+    );
+}
+
+function adicionar(){
+
+    const descricao =
+        document.getElementById("descricao").value;
+
+    const tipo =
+        document.getElementById("tipo").value;
+
+    const valor =
+        Number(document.getElementById("valor").value);
+
+    if(!descricao || valor <= 0){
+        alert("Preencha os campos.");
+        return;
+    }
+
+    dados.push({
+        id: Date.now(),
+        descricao,
+        tipo,
+        valor
+    });
+
+    salvar();
+    render();
+
+    document.getElementById("descricao").value = "";
+    document.getElementById("valor").value = "";
+}
+
+function excluir(id){
+
+    dados =
+    dados.filter(item => item.id !== id);
+
+    salvar();
+    render();
+}
+
+function render(){
+
+    const lista =
+    document.getElementById("lista");
+
+    lista.innerHTML = "";
+
+    let receitas = 0;
+    let despesas = 0;
+
+    dados.forEach(item => {
+
+        if(item.tipo === "receita"){
+            receitas += item.valor;
+        }else{
+            despesas += item.valor;
+        }
+
+        lista.innerHTML += `
+        <tr>
+            <td>${item.descricao}</td>
+            <td>${item.tipo}</td>
+            <td>R$ ${item.valor.toFixed(2)}</td>
+            <td>
+                <button
+                class="delete"
+                onclick="excluir(${item.id})">
+                Excluir
+                </button>
+            </td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("receitas")
+    .innerText =
+    "R$ " + receitas.toFixed(2);
+
+    document.getElementById("despesas")
+    .innerText =
+    "R$ " + despesas.toFixed(2);
+
+    document.getElementById("saldo")
+    .innerText =
+    "R$ " + (receitas - despesas).toFixed(2);
+}
+
+render();
+
+</script>
+
+</body>
+</html>
